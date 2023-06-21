@@ -30,7 +30,7 @@ async function bootstrap() {
 	app.setGlobalPrefix('api');
 
 	const config = new DocumentBuilder()
-		.setTitle('Документация по API сервера "Task manager"')
+		.setTitle('Документация по API сервера "Movies, cartoons, two series"')
 		.setDescription('Документация по API приложения дел')
 		.setVersion('1.0.0')
 		.addCookieAuth(process.env.COOKIE_NAME)
