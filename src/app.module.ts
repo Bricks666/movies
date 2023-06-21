@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database';
+import { MoviesModule } from './movies';
 
 @Module({
 	imports: [
@@ -10,7 +11,8 @@ import { DatabaseModule } from './database';
 		}),
 		DatabaseModule.forRoot({
 			isGlobal: true,
-		})
+		}),
+		MoviesModule,
 	],
 	controllers: [],
 	providers: [],
