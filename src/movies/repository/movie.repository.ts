@@ -40,7 +40,8 @@ export class MovieRepository {
 					id,
 				},
 			})
-			.then((value) => value ?? null);
+			.then((value) => value ?? null)
+			.catch(() => null);
 	}
 
 	async remove(params: SelectMovie): Promise<boolean> {
@@ -50,6 +51,7 @@ export class MovieRepository {
 					id: params.id,
 				},
 			})
-			.then((value) => !!value);
+			.then(() => true)
+			.catch(() => false);
 	}
 }
