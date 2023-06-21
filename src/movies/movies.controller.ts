@@ -8,22 +8,27 @@ import {
 	ParseIntPipe,
 	Put,
 	HttpStatus,
-	Query
+	Query,
+	UseInterceptors,
+	UploadedFiles
 } from '@nestjs/common';
 import {
 	ApiBody,
+	ApiConsumes,
 	ApiNotFoundResponse,
 	ApiOperation,
 	ApiParam,
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { PaginationDto } from '@/shared';
 import { RequiredAuth } from '@/auth';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieDto } from './dto';
+import type { Express } from 'express';
 
 @ApiTags('Фильмы')
 @Controller('movies')
@@ -69,10 +74,15 @@ export class MoviesController {
 		type: MovieDto,
 		status: HttpStatus.CREATED,
 	})
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FilesInterceptor('photos'))
 	@RequiredAuth()
 	@Post('/')
-	create(@Body() dto: CreateMovieDto) {
-		return this.moviesService.create(dto);
+	create(
+		@Body() dto: CreateMovieDto,
+		@UploadedFiles() photos: Express.Multer.File[]
+	) {
+		return this.moviesService.create(dto, photos);
 	}
 
 	@ApiOperation({
