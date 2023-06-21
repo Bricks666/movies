@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id       Int    @id @default(autoincrement())
+  login    String @unique
+  password String
+}
+
 model Movie {
   id          Int    @id @default(autoincrement())
   title       String
