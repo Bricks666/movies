@@ -38,6 +38,12 @@ export class MoviesService {
 	}
 
 	async remove(params: SelectMovie): Promise<boolean> {
-		return this.movieRepository.remove(params);
+		const removed = await this.movieRepository.remove(params);
+
+		if (!removed) {
+			throw new NotFoundException(`Movie with id ${params.id} not found`);
+		}
+
+		return removed;
 	}
 }
