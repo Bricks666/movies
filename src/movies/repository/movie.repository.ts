@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/database';
 import { NormalizedPagination } from '@/shared';
-import { CreateMovieDto, MovieDto, UpdateMovieDto } from '../dto';
-import { SelectMovie } from '../types';
+import { MovieDto, UpdateMovieDto } from '../dto';
+import { CreateMovie, SelectMovie } from '../types';
 
 @Injectable()
 export class MovieRepository {
@@ -25,9 +25,17 @@ export class MovieRepository {
 			.then((value) => value ?? null);
 	}
 
-	async create(params: CreateMovieDto): Promise<MovieDto> {
+	async create(params: CreateMovie): Promise<MovieDto> {
+		const { photos, ...rest } = params;
 		return this.databaseService.movie.create({
-			data: params,
+			data: {
+				...rest,
+				photos: {
+					createMany: {
+						data: photos.map((photo) => ({ path: photo, })),
+					},
+				},
+			},
 		});
 	}
 
