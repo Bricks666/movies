@@ -1,28 +1,73 @@
-import { Injectable } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common';
 import { UserRepository } from './repository';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, SecurityUserDto, UpdateUserDto, UserDto } from './dto';
+import { SelectUser } from './types';
 
 @Injectable()
 export class UsersService {
 	constructor(private readonly userRepository: UserRepository) {}
 
-	getAll() {
-		return `This action returns all users`;
+	async getOne(params: SelectUser): Promise<SecurityUserDto> {
+		const user = await this.userRepository.getOne(params);
+
+		if (!user) {
+			throw new NotFoundException(`User not found`);
+		}
+
+		return this.#securingUser(user);
 	}
 
-	getOne(id: number) {
-		return `This action returns a #${id} user`;
+	async getInsecure(params: SelectUser): Promise<UserDto> {
+		const user = await this.userRepository.getOne(params);
+
+		if (!user) {
+			throw new NotFoundException(`User not found`);
+		}
+
+		return user;
 	}
 
-	create(dto: CreateUserDto) {
-		return 'This action adds a new user';
+	async create(dto: CreateUserDto): Promise<SecurityUserDto> {
+		const user = await this.userRepository.create(dto);
+
+		if (!user) {
+			throw new ConflictException(`User with this login already exists`);
+		}
+
+		return this.#securingUser(user);
 	}
 
-	update(id: number, dto: UpdateUserDto) {
-		return `This action updates a #${id} user`;
+	async update(
+		params: SelectUser,
+		dto: UpdateUserDto
+	): Promise<SecurityUserDto> {
+		const user = await this.userRepository.update(params, dto);
+
+		if (!user) {
+			throw new NotFoundException(`User not found`);
+		}
+
+		return this.#securingUser(user);
 	}
 
-	remove(id: number) {
-		return `This action removes a #${id} user`;
+	async remove(params: SelectUser): Promise<boolean> {
+		const removed = await this.userRepository.remove(params);
+
+		if (!removed) {
+			throw new NotFoundException('User not found');
+		}
+
+		return removed;
+	}
+
+	#securingUser(user: UserDto): SecurityUserDto {
+		return {
+			id: user.id,
+			login: user.login,
+		};
 	}
 }
