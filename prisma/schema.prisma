@@ -11,10 +11,10 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  login        String   @unique
-  password     String
-  settedRating Rating[]
+  id       Int      @id @default(autoincrement())
+  login    String   @unique
+  password String
+  marks    Rating[]
 }
 
 model Movie {
@@ -23,6 +23,7 @@ model Movie {
   description String
   photos      MoviePhotos[]
   rating      Rating[]
+  rating      Rating[]
 }
 
 model MoviePhotos {
@@ -30,6 +31,16 @@ model MoviePhotos {
   movieId Int
   path    String
   movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Rating {
+  movieId Int
+  userId  Int
+  mark    Int   @db.SmallInt
+  movie   Movie @relation(fields: [movieId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([movieId, userId])
 }
 
 model Rating {
