@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from './database';
-import { AuthModule } from './auth';
-import { UsersModule } from './users';
-import { MoviesModule } from './movies';
+import { DatabaseModule } from '@/database';
+import { AuthModule } from '@/auth';
+import { UsersModule } from '@/users';
+import { MoviesModule } from '@/movies';
+import { RatingModule } from '@/rating';
 
 @Module({
 	imports: [
@@ -17,6 +18,7 @@ import { MoviesModule } from './movies';
 		MoviesModule,
 		UsersModule,
 		AuthModule,
+		RatingModule
 	],
 	controllers: [],
 	providers: [],
