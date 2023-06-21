@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/database';
+import { NormalizedPagination } from '@/shared';
 import { CreateMovieDto, MovieDto, UpdateMovieDto } from '../dto';
 import { SelectMovie } from '../types';
 
@@ -7,8 +8,11 @@ import { SelectMovie } from '../types';
 export class MovieRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async getAll(): Promise<MovieDto[]> {
-		return this.databaseService.movie.findMany();
+	async getAll(pagination: NormalizedPagination): Promise<MovieDto[]> {
+		return this.databaseService.movie.findMany({
+			skip: pagination.offset,
+			take: pagination.limit,
+		});
 	}
 
 	async getOne(params: SelectMovie): Promise<MovieDto | null> {

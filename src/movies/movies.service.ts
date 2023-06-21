@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PaginationDto, normalizePagination } from '@/shared';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { SelectMovie } from './types';
@@ -9,8 +10,12 @@ import { MovieRepository } from './repository';
 export class MoviesService {
 	constructor(private readonly movieRepository: MovieRepository) {}
 
-	async getAll(): Promise<MovieDto[]> {
-		return this.movieRepository.getAll();
+	async getAll(pagination: PaginationDto): Promise<MovieDto[]> {
+		const normalizedPagination = normalizePagination(pagination, {
+			count: 10,
+			page: 1,
+		});
+		return this.movieRepository.getAll(normalizedPagination);
 	}
 
 	async getOne(params: SelectMovie): Promise<MovieDto> {

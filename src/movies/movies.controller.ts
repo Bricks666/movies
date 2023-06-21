@@ -8,6 +8,7 @@ import {
 	ParseIntPipe,
 	Put,
 	HttpStatus,
+	Query,
 } from '@nestjs/common';
 import {
 	ApiBody,
@@ -17,6 +18,7 @@ import {
 	ApiResponse,
 	ApiTags,
 } from '@nestjs/swagger';
+import { PaginationDto } from '@/shared';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -35,8 +37,8 @@ export class MoviesController {
 		isArray: true,
 	})
 	@Get('/')
-	getAll() {
-		return this.moviesService.getAll();
+	getAll(@Query() pagination: PaginationDto) {
+		return this.moviesService.getAll(pagination);
 	}
 
 	@ApiOperation({
