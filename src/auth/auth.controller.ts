@@ -4,19 +4,50 @@ import {
 	Delete,
 	ForbiddenException,
 	Get,
+	HttpStatus,
 	Post,
 	Res
 } from '@nestjs/common';
+import {
+	ApiBody,
+	ApiConflictResponse,
+	ApiCookieAuth,
+	ApiForbiddenResponse,
+	ApiNotFoundResponse,
+	ApiOperation,
+	ApiResponse,
+	ApiTags,
+	ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { BASE_COOKIE_CONFIG, COOKIE_NAME, Cookie } from '@/shared';
 import { CreateUserDto, SecurityUserDto } from '@/users';
 import { AuthService } from './auth.service';
 import { AuthResponseDto, LoginDto, TokensDto } from './dto';
 import type { Response } from 'express';
 
+@ApiTags('Авторизация')
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
+	@ApiOperation({
+		summary: 'Авторизация пользователя по токену обновления',
+	})
+	@ApiCookieAuth(COOKIE_NAME)
+	@ApiResponse({
+		type: AuthResponseDto,
+		description: 'Пользователь и токен',
+		status: HttpStatus.OK,
+	})
+	@ApiForbiddenResponse({
+		description: 'Токен обновления отсутствует',
+	})
+	@ApiUnauthorizedResponse({
+		description: 'Невалидный токен',
+	})
+	@ApiNotFoundResponse({
+		description: 'Пользователь из токена не существует',
+	})
 	@Get('/')
 	async auth(
 		@Cookie(COOKIE_NAME) token: string | null,
@@ -33,6 +64,24 @@ export class AuthController {
 		return response;
 	}
 
+	@ApiOperation({
+		summary: 'Вход в аккаунт',
+	})
+	@ApiBody({
+		type: LoginDto,
+		description: 'Данные для входа',
+	})
+	@ApiResponse({
+		status: HttpStatus.OK,
+		type: AuthResponseDto,
+		description: 'Пользователь и токен',
+	})
+	@ApiNotFoundResponse({
+		description: 'Пользователя с таким логином не существует',
+	})
+	@ApiUnauthorizedResponse({
+		description: 'Неверный пароль',
+	})
 	@Post('/login')
 	async login(
 		@Body() dto: LoginDto,
@@ -41,21 +90,58 @@ export class AuthController {
 		const response = await this.authService.login(dto);
 
 		res.cookie(COOKIE_NAME, response.tokens.refreshToken, BASE_COOKIE_CONFIG);
+		res.status(HttpStatus.OK);
 
 		return response;
 	}
 
+	@ApiOperation({
+		summary: 'Регистрация нового пользователя',
+	})
+	@ApiBody({
+		type: CreateUserDto,
+		description: 'Данные нового пользователя',
+	})
+	@ApiResponse({
+		type: SecurityUserDto,
+		description: 'Добавленный пользователь',
+		status: HttpStatus.CREATED,
+	})
+	@ApiConflictResponse({
+		description: 'Пользователь с таким логином уже зарегистрирован',
+	})
 	@Post('/registration')
 	async registration(@Body() dto: CreateUserDto): Promise<SecurityUserDto> {
 		return this.authService.registration(dto);
 	}
 
+	@ApiOperation({
+		summary: 'Выход из аккаунта',
+	})
+	@ApiCookieAuth(COOKIE_NAME)
+	@ApiResponse({
+		type: Boolean,
+		description: 'Успешно ли произошел выход из аккаунта',
+		status: HttpStatus.OK,
+	})
 	@Delete('/logout')
 	async logout(@Res({ passthrough: true, }) res: Response): Promise<boolean> {
 		res.clearCookie(COOKIE_NAME);
 		return true;
 	}
 
+	@ApiOperation({
+		summary: 'Обновление токенов',
+	})
+	@ApiCookieAuth(COOKIE_NAME)
+	@ApiResponse({
+		type: TokensDto,
+		description: 'Обновленные токены',
+		status: HttpStatus.OK,
+	})
+	@ApiForbiddenResponse({
+		description: 'Отсутствует токен или он невалидный',
+	})
 	@Get('/refresh')
 	async refresh(
 		@Cookie(COOKIE_NAME) token: string | null,

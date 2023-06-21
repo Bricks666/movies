@@ -4,8 +4,9 @@ import {
 	UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
 import { CreateUserDto, SecurityUserDto, UsersService } from '@/users';
+import { ROUND_COUNT, SECRET } from '@/shared';
 import { AuthResponseDto, LoginDto, TokensDto } from './dto';
 import { TokenParams } from './types';
 
@@ -41,12 +42,15 @@ export class AuthService {
 
 		return {
 			tokens,
-			user,
+			user: this.usersService.securingUser(user),
 		};
 	}
 
 	async registration(dto: CreateUserDto): Promise<SecurityUserDto> {
-		return this.usersService.create(dto);
+		return this.usersService.create({
+			...dto,
+			password: await hash(dto.password, ROUND_COUNT),
+		});
 	}
 
 	async refresh(dto: TokenParams): Promise<TokensDto> {
@@ -55,7 +59,7 @@ export class AuthService {
 
 			return this.#generateTokens(user);
 		} catch (error) {
-			throw new ForbiddenException('Invalid token');
+			throw new ForbiddenException('Invalid token', { cause: error, });
 		}
 	}
 
@@ -65,7 +69,7 @@ export class AuthService {
 		try {
 			// 'Cause function return data and token's info
 			const user = await this.jwtService.verifyAsync(token, {
-				secret: process.env.SECRET,
+				secret: SECRET,
 			});
 
 			return {
@@ -80,12 +84,12 @@ export class AuthService {
 	async #generateTokens(user: SecurityUserDto): Promise<TokensDto> {
 		const accessToken = this.jwtService.signAsync(user, {
 			expiresIn: '30m',
-			secret: process.env.SECRET,
+			secret: SECRET,
 		});
 
 		const refreshToken = this.jwtService.signAsync(user, {
 			expiresIn: '30d',
-			secret: process.env.SECRET,
+			secret: SECRET,
 		});
 
 		const tokens = await Promise.all([accessToken, refreshToken]);

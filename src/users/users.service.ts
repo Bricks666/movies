@@ -18,7 +18,7 @@ export class UsersService {
 			throw new NotFoundException(`User not found`);
 		}
 
-		return this.#securingUser(user);
+		return this.securingUser(user);
 	}
 
 	async getInsecure(params: SelectUser): Promise<UserDto> {
@@ -38,7 +38,7 @@ export class UsersService {
 			throw new ConflictException(`User with this login already exists`);
 		}
 
-		return this.#securingUser(user);
+		return this.securingUser(user);
 	}
 
 	async update(
@@ -51,7 +51,7 @@ export class UsersService {
 			throw new NotFoundException(`User not found`);
 		}
 
-		return this.#securingUser(user);
+		return this.securingUser(user);
 	}
 
 	async remove(params: SelectUser): Promise<boolean> {
@@ -64,7 +64,7 @@ export class UsersService {
 		return removed;
 	}
 
-	#securingUser(user: UserDto): SecurityUserDto {
+	securingUser(user: UserDto): SecurityUserDto {
 		return {
 			id: user.id,
 			login: user.login,
