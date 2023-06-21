@@ -8,7 +8,7 @@ import {
 	ParseIntPipe,
 	Put,
 	HttpStatus,
-	Query,
+	Query
 } from '@nestjs/common';
 import {
 	ApiBody,
@@ -16,9 +16,10 @@ import {
 	ApiOperation,
 	ApiParam,
 	ApiResponse,
-	ApiTags,
+	ApiTags
 } from '@nestjs/swagger';
 import { PaginationDto } from '@/shared';
+import { RequiredAuth } from '@/auth';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
@@ -54,7 +55,7 @@ export class MoviesController {
 	@ApiNotFoundResponse()
 	@Get('/:id')
 	getOne(@Param('id', ParseIntPipe) id: number) {
-		return this.moviesService.getOne({ id });
+		return this.moviesService.getOne({ id, });
 	}
 
 	@ApiOperation({
@@ -68,6 +69,7 @@ export class MoviesController {
 		type: MovieDto,
 		status: HttpStatus.CREATED,
 	})
+	@RequiredAuth()
 	@Post('/')
 	create(@Body() dto: CreateMovieDto) {
 		return this.moviesService.create(dto);
@@ -88,10 +90,11 @@ export class MoviesController {
 		type: MovieDto,
 		status: HttpStatus.OK,
 	})
+	@RequiredAuth()
 	@ApiNotFoundResponse()
 	@Put('/:id')
 	update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
-		return this.moviesService.update({ id }, dto);
+		return this.moviesService.update({ id, }, dto);
 	}
 
 	@ApiOperation({
@@ -105,9 +108,10 @@ export class MoviesController {
 		type: Boolean,
 		status: HttpStatus.OK,
 	})
+	@RequiredAuth()
 	@ApiNotFoundResponse()
 	@Delete('/:id')
 	remove(@Param('id', ParseIntPipe) id: number) {
-		return this.moviesService.remove({ id });
+		return this.moviesService.remove({ id, });
 	}
 }

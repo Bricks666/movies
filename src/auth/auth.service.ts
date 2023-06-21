@@ -77,7 +77,7 @@ export class AuthService {
 				login: user.logig,
 			};
 		} catch (error) {
-			throw new UnauthorizedException('Jwt expired', { cause: error, });
+			throw new UnauthorizedException('Invalid jwt', { cause: error, });
 		}
 	}
 
