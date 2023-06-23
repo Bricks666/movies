@@ -1,23 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common';
 import { PaginationDto, normalizePagination } from '@/shared';
 import { FilesService } from '@/files';
-import { SelectMovie } from './types';
 import {
 	CreateMovieDto,
 	UpdateMovieDto,
 	RemovePhotosDto,
-	MoviePhotoDto,
 	MovieWithPhotosDto
 } from './dto';
-import { MoviePhotosRepository, MovieRepository } from './repository';
+import { MoviePhoto } from './entities';
+import {
+	MoviePhotosRepository,
+	MovieRepository,
+	RatingRepository
+} from './repository';
 import type { Express } from 'express';
+import type { RateMovie, SelectMovie } from './types';
 
 @Injectable()
 export class MoviesService {
 	constructor(
 		private readonly movieRepository: MovieRepository,
 		private readonly filesService: FilesService,
-		private readonly moviePhotosRepository: MoviePhotosRepository
+		private readonly moviePhotosRepository: MoviePhotosRepository,
+		private readonly ratingRepository: RatingRepository
 	) {}
 
 	async getAll(pagination: PaginationDto): Promise<MovieWithPhotosDto[]> {
@@ -114,7 +123,7 @@ export class MoviesService {
 		const photosMap = photos.reduce((acc, photo) => {
 			acc[photo.id] = photo;
 			return acc;
-		}, {} as Record<number, MoviePhotoDto>);
+		}, {} as Record<number, MoviePhoto>);
 
 		const removeRequests = dto.photosIds.map(async (id) => {
 			const photo = photosMap[id];
@@ -134,6 +143,24 @@ export class MoviesService {
 		});
 
 		await Promise.all(removeRequests);
+
+		return this.getOne(params);
+	}
+
+	async rate(params: SelectMovie, dto: RateMovie) {
+		try {
+			// Test that movie exists
+			await this.getOne(params);
+
+			await this.ratingRepository.create({
+				...dto,
+				movieId: params.id,
+			});
+		} catch (error) {
+			throw new ConflictException('You have already marked this movie', {
+				cause: error,
+			});
+		}
 
 		return this.getOne(params);
 	}

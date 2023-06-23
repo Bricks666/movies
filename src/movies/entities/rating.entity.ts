@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Rating as RatingModel } from '@prisma/client';
 
-export class RatingDto {
+export class Rating implements RatingModel {
 	@ApiProperty({})
 	declare userId: number;
 

@@ -1,12 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MoviePhotoDto } from './movie-photo.dto';
-import { MovieDto } from './movie.dto';
+import { Movie, MoviePhoto } from '../entities';
 
-export class MovieWithPhotosDto extends MovieDto {
+export class MovieWithPhotosDto extends Movie {
 	@ApiProperty({
-		type: MoviePhotoDto,
+		type: MoviePhoto,
 		isArray: true,
 		description: 'Фотографии фильма',
 	})
-	declare photos: MoviePhotoDto[];
+	declare photos: MoviePhoto[];
 }

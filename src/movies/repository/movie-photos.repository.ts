@@ -6,13 +6,13 @@ import {
 	RemovePhotos,
 	SelectMoviePhoto
 } from '../types';
-import { MoviePhotoDto } from '../dto';
+import { MoviePhoto } from '../entities';
 
 @Injectable()
 export class MoviePhotosRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async getAllByMovie(params: SelectMoviePhoto): Promise<MoviePhotoDto[]> {
+	async getAllByMovie(params: SelectMoviePhoto): Promise<MoviePhoto[]> {
 		return this.databaseService.moviePhotos.findMany({
 			where: {
 				movieId: params.movieId,

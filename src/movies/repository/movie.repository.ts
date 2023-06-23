@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/database';
 import { NormalizedPagination } from '@/shared';
-import { MovieDto, UpdateMovieDto } from '../dto';
+import { UpdateMovieDto } from '../dto';
+import { Movie } from '../entities';
 import { CreateMovie, SelectMovie } from '../types';
 import { RawMovie, normalizeMovie } from './lib';
 
@@ -9,7 +10,7 @@ import { RawMovie, normalizeMovie } from './lib';
 export class MovieRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async getAll(pagination: NormalizedPagination): Promise<MovieDto[]> {
+	async getAll(pagination: NormalizedPagination): Promise<Movie[]> {
 		const raw = await this.databaseService.$queryRaw<
 			RawMovie[]
 		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
@@ -20,7 +21,7 @@ export class MovieRepository {
 		return raw.map(normalizeMovie);
 	}
 
-	async getOne(params: SelectMovie): Promise<MovieDto | null> {
+	async getOne(params: SelectMovie): Promise<Movie | null> {
 		const raw = await this.databaseService.$queryRaw<
 			RawMovie | undefined
 		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
@@ -30,7 +31,7 @@ export class MovieRepository {
 		return raw ? normalizeMovie(raw) : null;
 	}
 
-	async create(params: CreateMovie): Promise<MovieDto> {
+	async create(params: CreateMovie): Promise<Movie> {
 		const { photos, ...rest } = params;
 		const movie = await this.databaseService.movie.create({
 			data: {
@@ -49,7 +50,7 @@ export class MovieRepository {
 		return this.getOne({ id: movie.id, });
 	}
 
-	async update(params: SelectMovie & UpdateMovieDto): Promise<MovieDto | null> {
+	async update(params: SelectMovie & UpdateMovieDto): Promise<Movie | null> {
 		const { id, ...rest } = params;
 		const movie = await this.databaseService.movie
 			.update({

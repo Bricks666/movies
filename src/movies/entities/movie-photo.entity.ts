@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MoviePhotos } from '@prisma/client';
 
-export class MoviePhotoDto implements Omit<MoviePhotos, 'movieId'> {
+export class MoviePhoto implements Omit<MoviePhotos, 'movieId'> {
 	@ApiProperty({
 		type: Number,
 		description: 'ID привязки фото к фильму',

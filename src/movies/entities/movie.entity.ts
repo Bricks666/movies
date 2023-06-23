@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Movie } from '@prisma/client';
+import { Movie as MovieModel } from '@prisma/client';
 
-export class MovieDto implements Movie {
+export class Movie implements MovieModel {
 	@ApiProperty({
 		type: Number,
 		description: 'ID фильма',

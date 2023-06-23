@@ -23,12 +23,18 @@ import {
 	ApiTags
 } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CurrentUser, RequiredAuth } from '@/auth';
+import { SecurityUserDto } from '@/users';
 import { PaginationDto } from '@/shared';
-import { RequiredAuth } from '@/auth';
 import { MoviesService } from './movies.service';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
-import { AddPhotosDto, MovieWithPhotosDto, RemovePhotosDto } from './dto';
+import {
+	AddPhotosDto,
+	MovieWithPhotosDto,
+	RemovePhotosDto,
+	CreateMovieDto,
+	UpdateMovieDto,
+	RateMovieDto
+} from './dto';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
@@ -164,6 +170,29 @@ export class MoviesController {
 		@Body() dto: RemovePhotosDto
 	) {
 		return this.moviesService.removePhotos({ id, }, dto);
+	}
+
+	@ApiOperation({})
+	@ApiBody({})
+	@ApiResponse({
+		type: MovieWithPhotosDto,
+		status: HttpStatus.OK,
+	})
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
+	@RequiredAuth()
+	@Patch('/:id/rate')
+	async rateMovie(
+		@Param('id', ParseIntPipe) id: number,
+		@CurrentUser() user: SecurityUserDto,
+		@Body() dto: RateMovieDto
+	) {
+		return this.moviesService.rate(
+			{ id, },
+			{
+				mark: dto.mark,
+				userId: user.id,
+			}
+		);
 	}
 
 	@ApiOperation({

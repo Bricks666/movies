@@ -6,7 +6,6 @@ import { DatabaseModule } from '@/database';
 import { AuthModule } from '@/auth';
 import { UsersModule } from '@/users';
 import { MoviesModule } from '@/movies';
-import { RatingModule } from '@/rating';
 import { FilesModule } from '@/files';
 import { STATIC_DIR, STATIC_PATH } from '@/shared';
 
@@ -31,8 +30,7 @@ const STATIC_DIR_PATH = resolve(__dirname, STATIC_DIR);
 		}),
 		AuthModule,
 		UsersModule,
-		MoviesModule,
-		RatingModule,
+		MoviesModule
 	],
 	controllers: [],
 	providers: [],

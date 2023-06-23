@@ -1,4 +1,4 @@
-import { MovieDto } from '../dto';
+import { Movie } from '../entities';
 
 export interface RawMovie {
 	readonly id: number;
@@ -7,7 +7,7 @@ export interface RawMovie {
 	readonly rating: string | null;
 }
 
-export const normalizeMovie = (movie: RawMovie): MovieDto => {
+export const normalizeMovie = (movie: RawMovie): Movie => {
 	return {
 		id: movie.id,
 		title: movie.title,
