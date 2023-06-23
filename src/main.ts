@@ -6,9 +6,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from '@/app.module';
 import { DatabaseService } from '@/database';
+import { COOKIE_NAME, PORT } from './shared';
 
 async function bootstrap() {
-	const { PORT, } = process.env;
 	const app = await NestFactory.create(AppModule);
 
 	const prismaService = app.get(DatabaseService);
@@ -27,16 +27,13 @@ async function bootstrap() {
 		})
 	);
 
-	app.setGlobalPrefix('api');
-
 	const config = new DocumentBuilder()
-		.setTitle('Документация по API сервера "Task manager"')
+		.setTitle('Документация по API сервера "Movies, cartoons, two series"')
 		.setDescription('Документация по API приложения дел')
 		.setVersion('1.0.0')
-		.addCookieAuth(process.env.COOKIE_NAME)
+		.addCookieAuth(COOKIE_NAME)
 		.addBearerAuth()
 		.addServer('http://localhost:5000')
-		.addTag('api')
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);
