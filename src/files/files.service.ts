@@ -1,12 +1,11 @@
 import { extname, join, resolve } from 'node:path';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, unlink } from 'node:fs/promises';
 import {
 	Inject,
 	Injectable,
 	InternalServerErrorException
 } from '@nestjs/common';
-import { hash } from 'bcrypt';
-import { ROUND_COUNT } from '@/shared';
+import { v4 } from 'uuid';
 import { MODULE_OPTIONS_TOKEN, OPTIONS_TYPE } from './files.module-definition';
 import type { Express } from 'express';
 
@@ -23,9 +22,7 @@ export class FilesService {
 
 	async writeFile(file: Express.Multer.File): Promise<string> {
 		try {
-			const fileName =
-				(await hash(file.originalname, ROUND_COUNT)) +
-				extname(file.originalname);
+			const fileName = v4() + extname(file.originalname);
 
 			const fileSystemPath = this.getFileSystemPath(fileName);
 			const servePath = this.getServePath(fileName);
@@ -35,6 +32,16 @@ export class FilesService {
 			return servePath;
 		} catch (error) {
 			throw new InternalServerErrorException('Write file error', {
+				cause: error,
+			});
+		}
+	}
+
+	async removeFile(path: string): Promise<void> {
+		try {
+			await unlink(path);
+		} catch (error) {
+			throw new InternalServerErrorException('Remove file error', {
 				cause: error,
 			});
 		}

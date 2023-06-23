@@ -6,7 +6,8 @@ import {
 	MovieDto,
 	CreateMovieDto,
 	UpdateMovieDto,
-	RemovePhotosDto
+	RemovePhotosDto,
+	MoviePhotoDto
 } from './dto';
 import { MoviePhotosRepository, MovieRepository } from './repository';
 import type { Express } from 'express';
@@ -61,10 +62,11 @@ export class MoviesService {
 		params: SelectMovie,
 		photos: Express.Multer.File[]
 	): Promise<MovieDto> {
+		// Test that movie exists
+		await this.getOne(params);
 		const filesPaths = await Promise.all(
 			photos.map((photo) => this.filesService.writeFile(photo))
 		);
-
 		await this.moviePhotosRepository.addPhotos({
 			movieId: params.id,
 			photos: filesPaths,
@@ -77,10 +79,32 @@ export class MoviesService {
 		params: SelectMovie,
 		dto: RemovePhotosDto
 	): Promise<MovieDto> {
-		await this.moviePhotosRepository.removePhotos({
+		const photos = await this.moviePhotosRepository.getAllByMovie({
 			movieId: params.id,
-			photosIds: dto.photosIds,
 		});
+		const photosMap = photos.reduce((acc, photo) => {
+			acc[photo.id] = photo;
+			return acc;
+		}, {} as Record<number, MoviePhotoDto>);
+
+		const removeRequests = dto.photosIds.map(async (id) => {
+			const photo = photosMap[id];
+			if (!photo) {
+				throw new NotFoundException(
+					`There is not photo with id ${id} in movie with id ${params.id}`
+				);
+			}
+
+			await this.moviePhotosRepository.removePhoto({
+				movieId: params.id,
+				photoId: id,
+			});
+			await this.filesService.removeFile(
+				this.filesService.toFileSystemPath(photo.path)
+			);
+		});
+
+		await Promise.all(removeRequests);
 
 		return this.getOne(params);
 	}

@@ -12,6 +12,7 @@ export class MovieRepository {
 		return this.databaseService.movie.findMany({
 			skip: pagination.offset,
 			take: pagination.limit,
+			select: movieSelect,
 		});
 	}
 
@@ -21,6 +22,7 @@ export class MovieRepository {
 				where: {
 					id: params.id,
 				},
+				select: movieSelect,
 			})
 			.then((value) => value ?? null);
 	}
@@ -36,6 +38,7 @@ export class MovieRepository {
 					},
 				},
 			},
+			select: movieSelect,
 		});
 	}
 
@@ -47,6 +50,7 @@ export class MovieRepository {
 				where: {
 					id,
 				},
+				select: movieSelect,
 			})
 			.then((value) => value ?? null)
 			.catch(() => null);
@@ -58,8 +62,21 @@ export class MovieRepository {
 				where: {
 					id: params.id,
 				},
+				select: movieSelect,
 			})
 			.then(() => true)
 			.catch(() => false);
 	}
 }
+
+const movieSelect = {
+	id: true,
+	description: true,
+	title: true,
+	photos: {
+		select: {
+			id: true,
+			path: true,
+		},
+	},
+};
