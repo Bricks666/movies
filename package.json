@@ -7,10 +7,10 @@
 	"license": "UNLICENSED",
 	"scripts": {
 		"build": "nest build",
-		"start": "nest start",
+		"start": "npx prisma db push && nest start",
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
-		"start:prod": "echo $DATABASE_URL && npx prisma db push && node ./main.js",
+		"start:prod": "npx prisma db push && node ./main.js",
 		"lint": "eslint --ext .ts src/",
 		"lint:fix": "eslint --ext .ts src/ --fix",
 		"prettier": "prettier --write --config ./.prettierrc src",

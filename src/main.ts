@@ -33,6 +33,7 @@ async function bootstrap() {
 		.setVersion('1.0.0')
 		.addCookieAuth(COOKIE_NAME)
 		.addBearerAuth()
+		.addServer('https://movies-r5jl.onrender.com')
 		.addServer('http://localhost:5000')
 		.build();
 
