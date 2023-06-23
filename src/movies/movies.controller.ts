@@ -94,6 +94,8 @@ export class MoviesController {
 	})
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FilesInterceptor('photos'))
 	@RequiredAuth()
 	@Post('/')
 	create(
