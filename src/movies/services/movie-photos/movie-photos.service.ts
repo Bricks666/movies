@@ -23,6 +23,7 @@ export class MoviePhotosService {
 		const filesPaths = await Promise.all(
 			photos.map((photo) => this.filesService.writeFile(photo))
 		);
+
 		await this.moviePhotosRepository.addPhotos({
 			movieId: params.id,
 			photos: filesPaths,

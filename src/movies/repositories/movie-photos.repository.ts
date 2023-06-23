@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/database';
-import {
-	AddPhotos,
-	RemovePhoto,
-	RemovePhotos,
-	SelectMoviePhoto
-} from '../types';
+import { AddPhotos, RemovePhoto, SelectMoviePhoto } from '../types';
 import { MoviePhoto } from '../entities';
 
 @Injectable()
@@ -28,18 +23,6 @@ export class MoviePhotosRepository {
 				movieId: dto.movieId,
 			})),
 			skipDuplicates: true,
-		});
-		return !!count;
-	}
-
-	async removePhotos(dto: RemovePhotos): Promise<boolean> {
-		const { count, } = await this.databaseService.moviePhotos.deleteMany({
-			where: {
-				movieId: dto.movieId,
-				id: {
-					in: dto.photosIds,
-				},
-			},
 		});
 		return !!count;
 	}

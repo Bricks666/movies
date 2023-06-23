@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
 	ApiBody,
+	ApiConflictResponse,
 	ApiConsumes,
 	ApiNotFoundResponse,
 	ApiOperation,
@@ -180,13 +181,27 @@ export class MoviesController {
 		return this.moviePhotosService.removePhotos({ id, }, dto);
 	}
 
-	@ApiOperation({})
-	@ApiBody({})
+	@ApiOperation({
+		summary: 'Выставление оценки',
+	})
+	@ApiParam({
+		name: 'id',
+		type: Number,
+		description: 'Id фильма',
+	})
+	@ApiBody({
+		type: RateMovieDto,
+		description: 'Данные для оценки',
+	})
 	@ApiResponse({
 		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
+		description: 'Обнлвленные данные фильма',
 	})
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
+	@ApiConflictResponse({
+		description: 'Пользователь уже оставил оценку для этого фильма',
+	})
 	@RequiredAuth()
 	@Patch('/:id/rate')
 	async rateMovie(
