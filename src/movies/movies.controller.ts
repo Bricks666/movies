@@ -10,7 +10,9 @@ import {
 	Query,
 	UseInterceptors,
 	UploadedFiles,
-	Patch
+	Patch,
+	FileTypeValidator,
+	ParseFilePipe
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
@@ -105,7 +107,13 @@ export class MoviesController {
 	@Post('/')
 	create(
 		@Body() dto: CreateMovieDto,
-		@UploadedFiles() photos: Express.Multer.File[]
+		@UploadedFiles(
+			new ParseFilePipe({
+				fileIsRequired: false,
+				validators: [new FileTypeValidator({ fileType: 'image/*', })],
+			})
+		)
+			photos: Express.Multer.File[]
 	) {
 		return this.moviesService.create(dto, photos);
 	}
@@ -159,7 +167,13 @@ export class MoviesController {
 	@UseInterceptors(FilesInterceptor('photos'))
 	@Patch('/:id/photos/add')
 	addPhotos(
-		@UploadedFiles() photos: Express.Multer.File[],
+		@UploadedFiles(
+			new ParseFilePipe({
+				fileIsRequired: true,
+				validators: [new FileTypeValidator({ fileType: 'image/*', })],
+			})
+		)
+			photos: Express.Multer.File[],
 		@Param('id') id: string
 	) {
 		return this.moviePhotosService.addPhotos({ id, }, photos);

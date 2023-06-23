@@ -1,5 +1,5 @@
 import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { IsArray, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { Movie } from '../entities';
 import type { Express } from 'express';
 
@@ -15,7 +15,6 @@ export class CreateMovieDto extends OmitType(Movie, [
 		description: 'Файлы фотографий',
 		required: false,
 	})
-	@IsArray()
 	@IsOptional()
 	declare photos?: Express.Multer.File[];
 }
