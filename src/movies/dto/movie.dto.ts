@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Movie } from '@prisma/client';
+import { MoviePhotoDto } from './movie-photo.dto';
 
 export class MovieDto implements Movie {
 	@ApiProperty({
@@ -22,4 +23,7 @@ export class MovieDto implements Movie {
 		description: 'Описание фильма',
 	})
 	declare description: string;
+
+	@ApiProperty()
+	declare photos: MoviePhotoDto[];
 }
