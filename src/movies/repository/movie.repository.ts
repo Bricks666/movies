@@ -3,33 +3,36 @@ import { DatabaseService } from '@/database';
 import { NormalizedPagination } from '@/shared';
 import { MovieDto, UpdateMovieDto } from '../dto';
 import { CreateMovie, SelectMovie } from '../types';
+import { RawMovie, normalizeMovie } from './lib';
 
 @Injectable()
 export class MovieRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
 	async getAll(pagination: NormalizedPagination): Promise<MovieDto[]> {
-		return this.databaseService.movie.findMany({
-			skip: pagination.offset,
-			take: pagination.limit,
-			select: movieSelect,
-		});
+		const raw = await this.databaseService.$queryRaw<
+			RawMovie[]
+		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
+			LEFT JOIN "Rating" ON "Rating"."movieId" = "Movie"."id"\
+			GROUP BY "id"\
+			OFFSET ${pagination.offset} LIMIT ${pagination.limit};`;
+
+		return raw.map(normalizeMovie);
 	}
 
 	async getOne(params: SelectMovie): Promise<MovieDto | null> {
-		return this.databaseService.movie
-			.findUnique({
-				where: {
-					id: params.id,
-				},
-				select: movieSelect,
-			})
-			.then((value) => value ?? null);
+		const raw = await this.databaseService.$queryRaw<
+			RawMovie | undefined
+		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
+		LEFT JOIN "Rating" ON "Rating"."movieId" = "Movie"."id"\
+		WHERE "id" = ${params.id}\
+		GROUP BY "id";`.then((result) => result[0]);
+		return raw ? normalizeMovie(raw) : null;
 	}
 
 	async create(params: CreateMovie): Promise<MovieDto> {
 		const { photos, ...rest } = params;
-		return this.databaseService.movie.create({
+		const movie = await this.databaseService.movie.create({
 			data: {
 				...rest,
 				photos: {
@@ -38,22 +41,28 @@ export class MovieRepository {
 					},
 				},
 			},
-			select: movieSelect,
+			select: {
+				id: true,
+			},
 		});
+
+		return this.getOne({ id: movie.id, });
 	}
 
 	async update(params: SelectMovie & UpdateMovieDto): Promise<MovieDto | null> {
 		const { id, ...rest } = params;
-		return this.databaseService.movie
+		const movie = await this.databaseService.movie
 			.update({
 				data: rest,
 				where: {
 					id,
 				},
-				select: movieSelect,
+				select: {
+					id: true,
+				},
 			})
-			.then((value) => value ?? null)
 			.catch(() => null);
+		return this.getOne({ id: movie.id, });
 	}
 
 	async remove(params: SelectMovie): Promise<boolean> {
@@ -62,21 +71,8 @@ export class MovieRepository {
 				where: {
 					id: params.id,
 				},
-				select: movieSelect,
 			})
 			.then(() => true)
 			.catch(() => false);
 	}
 }
-
-const movieSelect = {
-	id: true,
-	description: true,
-	title: true,
-	photos: {
-		select: {
-			id: true,
-			path: true,
-		},
-	},
-};

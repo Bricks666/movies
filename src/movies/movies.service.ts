@@ -3,11 +3,11 @@ import { PaginationDto, normalizePagination } from '@/shared';
 import { FilesService } from '@/files';
 import { SelectMovie } from './types';
 import {
-	MovieDto,
 	CreateMovieDto,
 	UpdateMovieDto,
 	RemovePhotosDto,
-	MoviePhotoDto
+	MoviePhotoDto,
+	MovieWithPhotosDto
 } from './dto';
 import { MoviePhotosRepository, MovieRepository } from './repository';
 import type { Express } from 'express';
@@ -20,48 +20,77 @@ export class MoviesService {
 		private readonly moviePhotosRepository: MoviePhotosRepository
 	) {}
 
-	async getAll(pagination: PaginationDto): Promise<MovieDto[]> {
+	async getAll(pagination: PaginationDto): Promise<MovieWithPhotosDto[]> {
 		const normalizedPagination = normalizePagination(pagination, {
 			count: 10,
 			page: 1,
 		});
-		return this.movieRepository.getAll(normalizedPagination);
+		const movies = await this.movieRepository.getAll(normalizedPagination);
+
+		const moviesWithPhotos = movies.map(
+			async (movie): Promise<MovieWithPhotosDto> => {
+				const photos = await this.moviePhotosRepository.getAllByMovie({
+					movieId: movie.id,
+				});
+
+				return {
+					...movie,
+					photos,
+				};
+			}
+		);
+
+		return Promise.all(moviesWithPhotos);
 	}
 
-	async getOne(params: SelectMovie): Promise<MovieDto> {
+	async getOne(params: SelectMovie): Promise<MovieWithPhotosDto> {
 		const movie = await this.movieRepository.getOne(params);
 
 		if (!movie) {
 			throw new NotFoundException(`Movie with id ${params.id} not found`);
 		}
 
-		return movie;
+		const photos = await this.moviePhotosRepository.getAllByMovie({
+			movieId: movie.id,
+		});
+
+		return {
+			...movie,
+			photos,
+		};
 	}
 
 	async create(
 		dto: CreateMovieDto,
 		photos: Express.Multer.File[]
-	): Promise<MovieDto> {
+	): Promise<MovieWithPhotosDto> {
 		const filesPaths = await Promise.all(
 			photos.map((photo) => this.filesService.writeFile(photo))
 		);
-		return this.movieRepository.create({ ...dto, photos: filesPaths, });
+		const movie = await this.movieRepository.create({
+			...dto,
+			photos: filesPaths,
+		});
+		return this.getOne({ id: movie.id, });
 	}
 
-	async update(params: SelectMovie, dto: UpdateMovieDto): Promise<MovieDto> {
+	async update(
+		params: SelectMovie,
+		dto: UpdateMovieDto
+	): Promise<MovieWithPhotosDto> {
 		const movie = await this.movieRepository.update({ ...dto, ...params, });
 
 		if (!movie) {
 			throw new NotFoundException(`Movie with id ${params.id} not found`);
 		}
 
-		return movie;
+		return this.getOne({ id: movie.id, });
 	}
 
 	async addPhotos(
 		params: SelectMovie,
 		photos: Express.Multer.File[]
-	): Promise<MovieDto> {
+	): Promise<MovieWithPhotosDto> {
 		// Test that movie exists
 		await this.getOne(params);
 		const filesPaths = await Promise.all(
@@ -78,7 +107,7 @@ export class MoviesService {
 	async removePhotos(
 		params: SelectMovie,
 		dto: RemovePhotosDto
-	): Promise<MovieDto> {
+	): Promise<MovieWithPhotosDto> {
 		const photos = await this.moviePhotosRepository.getAllByMovie({
 			movieId: params.id,
 		});

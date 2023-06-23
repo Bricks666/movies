@@ -28,7 +28,7 @@ import { RequiredAuth } from '@/auth';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { AddPhotosDto, MovieDto, RemovePhotosDto } from './dto';
+import { AddPhotosDto, MovieWithPhotosDto, RemovePhotosDto } from './dto';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
@@ -40,7 +40,7 @@ export class MoviesController {
 		summary: 'Вернуть все фильмы',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		isArray: true,
 	})
 	@Get('/')
@@ -57,7 +57,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		description: 'Найденный фильм',
 	})
 	@ApiNotFoundResponse()
@@ -74,7 +74,7 @@ export class MoviesController {
 		description: 'Данные для создание фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.CREATED,
 	})
 	@ApiConsumes('multipart/form-data')
@@ -101,7 +101,7 @@ export class MoviesController {
 		description: 'Новые данные фильма фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 		description: 'Обновленный фильм',
 	})
@@ -127,7 +127,7 @@ export class MoviesController {
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
@@ -153,7 +153,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })

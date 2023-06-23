@@ -6,7 +6,7 @@ import { RateMovie } from '../types';
 export class RatingRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async create(dto: RateMovie): Promise<null | unknown> {
+	async create(dto: RateMovie): Promise<null> {
 		return this.databaseService.rating
 			.create({
 				data: dto,

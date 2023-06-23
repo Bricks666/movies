@@ -1,5 +1,4 @@
-export class RateMovieDto {
-	declare movieId: number;
+import { OmitType } from '@nestjs/swagger';
+import { RatingDto } from './rating.dto';
 
-	declare mark: number;
-}
+export class RateMovieDto extends OmitType(RatingDto, ['userId']) {}
