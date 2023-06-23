@@ -10,7 +10,8 @@ import {
 	HttpStatus,
 	Query,
 	UseInterceptors,
-	UploadedFiles
+	UploadedFiles,
+	Patch
 } from '@nestjs/common';
 import {
 	ApiBody,
@@ -27,7 +28,7 @@ import { RequiredAuth } from '@/auth';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { MovieDto } from './dto';
+import { AddPhotosDto, MovieDto, RemovePhotosDto } from './dto';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
@@ -105,6 +106,32 @@ export class MoviesController {
 	@Put('/:id')
 	update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
 		return this.moviesService.update({ id, }, dto);
+	}
+
+	@ApiBody({
+		type: AddPhotosDto,
+		description: 'Новые данные фильма фильма',
+	})
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FilesInterceptor('photos'))
+	@Patch('/:id/photos/add')
+	addPhotos(
+		@UploadedFiles() photos: Express.Multer.File[],
+		@Param('id', ParseIntPipe) id: number
+	) {
+		return this.moviesService.addPhotos({ id, }, photos);
+	}
+
+	@ApiBody({
+		type: RemovePhotosDto,
+		description: '',
+	})
+	@Patch('/:id/photos/remove')
+	removePhotos(
+		@Param('id', ParseIntPipe) id: number,
+		@Body() dto: RemovePhotosDto
+	) {
+		return this.moviesService.removePhotos({ id, }, dto);
 	}
 
 	@ApiOperation({

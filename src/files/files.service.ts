@@ -9,7 +9,6 @@ import { hash } from 'bcrypt';
 import { ROUND_COUNT } from '@/shared';
 import { MODULE_OPTIONS_TOKEN, OPTIONS_TYPE } from './files.module-definition';
 import type { Express } from 'express';
-import type { FilePaths } from './types';
 
 @Injectable()
 export class FilesService {
@@ -22,7 +21,7 @@ export class FilesService {
 		this.#clientPath = options.clientPath;
 	}
 
-	async writeFile(file: Express.Multer.File): Promise<FilePaths> {
+	async writeFile(file: Express.Multer.File): Promise<string> {
 		try {
 			const fileName =
 				(await hash(file.originalname, ROUND_COUNT)) +
@@ -33,10 +32,7 @@ export class FilesService {
 
 			await writeFile(fileSystemPath, file.buffer);
 
-			return {
-				servePath,
-				fileSystemPath,
-			};
+			return servePath;
 		} catch (error) {
 			throw new InternalServerErrorException('Write file error', {
 				cause: error,

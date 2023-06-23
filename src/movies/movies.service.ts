@@ -2,15 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationDto, normalizePagination } from '@/shared';
 import { FilesService } from '@/files';
 import { SelectMovie } from './types';
-import { MovieDto, CreateMovieDto, UpdateMovieDto } from './dto';
-import { MovieRepository } from './repository';
+import {
+	MovieDto,
+	CreateMovieDto,
+	UpdateMovieDto,
+	RemovePhotosDto
+} from './dto';
+import { MoviePhotosRepository, MovieRepository } from './repository';
 import type { Express } from 'express';
 
 @Injectable()
 export class MoviesService {
 	constructor(
 		private readonly movieRepository: MovieRepository,
-		private readonly filesService: FilesService
+		private readonly filesService: FilesService,
+		private readonly moviePhotosRepository: MoviePhotosRepository
 	) {}
 
 	async getAll(pagination: PaginationDto): Promise<MovieDto[]> {
@@ -38,8 +44,7 @@ export class MoviesService {
 		const filesPaths = await Promise.all(
 			photos.map((photo) => this.filesService.writeFile(photo))
 		);
-		const paths = filesPaths.map((filePaths) => filePaths.servePath);
-		return this.movieRepository.create({ ...dto, photos: paths, });
+		return this.movieRepository.create({ ...dto, photos: filesPaths, });
 	}
 
 	async update(params: SelectMovie, dto: UpdateMovieDto): Promise<MovieDto> {
@@ -50,6 +55,34 @@ export class MoviesService {
 		}
 
 		return movie;
+	}
+
+	async addPhotos(
+		params: SelectMovie,
+		photos: Express.Multer.File[]
+	): Promise<MovieDto> {
+		const filesPaths = await Promise.all(
+			photos.map((photo) => this.filesService.writeFile(photo))
+		);
+
+		await this.moviePhotosRepository.addPhotos({
+			movieId: params.id,
+			photos: filesPaths,
+		});
+
+		return this.getOne(params);
+	}
+
+	async removePhotos(
+		params: SelectMovie,
+		dto: RemovePhotosDto
+	): Promise<MovieDto> {
+		await this.moviePhotosRepository.removePhotos({
+			movieId: params.id,
+			photosIds: dto.photosIds,
+		});
+
+		return this.getOne(params);
 	}
 
 	async remove(params: SelectMovie): Promise<boolean> {

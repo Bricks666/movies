@@ -1,4 +1,4 @@
-import { CreateMovieDto } from './dto';
+import { CreateMovieDto, RemovePhotosDto } from './dto';
 
 export interface SelectMovie {
 	readonly id: number;
@@ -6,4 +6,13 @@ export interface SelectMovie {
 
 export interface CreateMovie extends Omit<CreateMovieDto, 'photos'> {
 	readonly photos?: string[];
+}
+
+export interface AddPhotos {
+	readonly movieId: number;
+	readonly photos: string[];
+}
+
+export interface RemovePhotos extends RemovePhotosDto {
+	readonly movieId: number;
 }

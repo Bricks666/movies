@@ -28,9 +28,9 @@ const STATIC_DIR_PATH = resolve(__dirname, STATIC_DIR);
 			rootPath: STATIC_DIR_PATH,
 			serveRoot: STATIC_PATH,
 		}),
-		MoviesModule,
+		AuthModule,
 		UsersModule,
-		AuthModule
+		MoviesModule
 	],
 	controllers: [],
 	providers: [],
