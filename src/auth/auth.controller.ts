@@ -9,6 +9,7 @@ import {
 	Res
 } from '@nestjs/common';
 import {
+	ApiBadRequestResponse,
 	ApiBody,
 	ApiConflictResponse,
 	ApiCookieAuth,
@@ -76,6 +77,7 @@ export class AuthController {
 		type: AuthResponseDto,
 		description: 'Пользователь и токен',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({
 		description: 'Пользователя с таким логином не существует',
 	})
@@ -107,6 +109,7 @@ export class AuthController {
 		description: 'Добавленный пользователь',
 		status: HttpStatus.CREATED,
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiConflictResponse({
 		description: 'Пользователь с таким логином уже зарегистрирован',
 	})
@@ -121,8 +124,8 @@ export class AuthController {
 	@ApiCookieAuth(COOKIE_NAME)
 	@ApiResponse({
 		type: Boolean,
-		description: 'Успешно ли произошел выход из аккаунта',
 		status: HttpStatus.OK,
+		description: 'Успешно ли произошел выход из аккаунта',
 	})
 	@Delete('/logout')
 	async logout(@Res({ passthrough: true, }) res: Response): Promise<boolean> {

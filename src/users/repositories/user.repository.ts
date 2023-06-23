@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@/database';
-import { CreateUserDto, UpdateUserDto, UserDto } from '../dto';
+import { CreateUserDto, UpdateUserDto } from '../dto';
 import { SelectUser } from '../types';
+import { User } from '../entities';
 
 @Injectable()
 export class UserRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async getOne(params: SelectUser): Promise<UserDto | null> {
+	async getOne(params: SelectUser): Promise<User | null> {
 		return this.databaseService.user.findUnique({
 			where: params,
 		});
 	}
 
-	async create(data: CreateUserDto): Promise<UserDto | null> {
+	async create(data: CreateUserDto): Promise<User | null> {
 		return this.databaseService.user
 			.create({
 				data,
@@ -21,10 +22,7 @@ export class UserRepository {
 			.catch(() => null);
 	}
 
-	async update(
-		params: SelectUser,
-		data: UpdateUserDto
-	): Promise<UserDto | null> {
+	async update(params: SelectUser, data: UpdateUserDto): Promise<User | null> {
 		return this.databaseService.user
 			.update({
 				where: params,

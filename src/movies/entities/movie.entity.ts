@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Movie as MovieModel } from '@prisma/client';
 import {
+	IsArray,
 	IsMongoId,
 	IsNumber,
 	IsString,
@@ -48,5 +49,6 @@ export class Movie implements MovieModel {
 		isArray: true,
 		description: 'Фотографии фильма',
 	})
+	@IsArray()
 	declare photos: MoviePhoto[];
 }

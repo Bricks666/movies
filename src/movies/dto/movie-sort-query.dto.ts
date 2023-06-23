@@ -14,6 +14,7 @@ export class MovieSortQueryDto {
 		enum: MOVIES_SORT_BY,
 		required: false,
 	})
+	@IsEnum(MOVIES_SORT_BY)
 	@IsOptional()
 	declare sortBy?: MoviesSortBy;
 

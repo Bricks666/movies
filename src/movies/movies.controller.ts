@@ -13,6 +13,7 @@ import {
 	Patch
 } from '@nestjs/common';
 import {
+	ApiBadRequestResponse,
 	ApiBody,
 	ApiConflictResponse,
 	ApiConsumes,
@@ -56,7 +57,10 @@ export class MoviesController {
 	@ApiResponse({
 		type: Movie,
 		isArray: true,
+		status: HttpStatus.OK,
+		description: 'Фильмы',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@Get('/')
 	getAll(@Query() query: GetAllQueryDto) {
 		return this.moviesService.getAll(query);
@@ -72,9 +76,11 @@ export class MoviesController {
 	})
 	@ApiResponse({
 		type: Movie,
+		status: HttpStatus.OK,
 		description: 'Найденный фильм',
 	})
-	@ApiNotFoundResponse()
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@Get('/:id')
 	getOne(@Param('id') id: string) {
 		return this.moviesService.getOne({ id, });
@@ -83,6 +89,7 @@ export class MoviesController {
 	@ApiOperation({
 		summary: 'Добавить фильм',
 	})
+	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		type: CreateMovieDto,
 		description: 'Данные для создание фильма',
@@ -90,10 +97,11 @@ export class MoviesController {
 	@ApiResponse({
 		type: Movie,
 		status: HttpStatus.CREATED,
+		description: 'Созданный фильм',
 	})
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@RequiredAuth()
+	@UseInterceptors(FilesInterceptor('photos'))
 	@Post('/')
 	create(
 		@Body() dto: CreateMovieDto,
@@ -119,8 +127,9 @@ export class MoviesController {
 		status: HttpStatus.OK,
 		description: 'Обновленный фильм',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
-	@ApiNotFoundResponse()
 	@Put('/:id')
 	update(@Param('id') id: string, @Body() dto: UpdateMovieDto) {
 		return this.moviesService.update({ id, }, dto);
@@ -134,18 +143,20 @@ export class MoviesController {
 		type: String,
 		description: 'Id фильма',
 	})
+	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		type: AddPhotosDto,
 		description: 'Новые данные фильма фильма',
 	})
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiResponse({
 		type: Movie,
 		status: HttpStatus.OK,
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
+	@UseInterceptors(FilesInterceptor('photos'))
 	@Patch('/:id/photos/add')
 	addPhotos(
 		@UploadedFiles() photos: Express.Multer.File[],
@@ -169,7 +180,9 @@ export class MoviesController {
 	@ApiResponse({
 		type: Movie,
 		status: HttpStatus.OK,
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
 	@RequiredAuth()
 	@Patch('/:id/photos/remove')
@@ -192,8 +205,9 @@ export class MoviesController {
 	@ApiResponse({
 		type: Movie,
 		status: HttpStatus.OK,
-		description: 'Обнлвленные данные фильма',
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@ApiConflictResponse({
 		description: 'Пользователь уже оставил оценку для этого фильма',
@@ -220,13 +234,16 @@ export class MoviesController {
 	@ApiParam({
 		name: 'id',
 		type: String,
+		description: 'Id фильма',
 	})
 	@ApiResponse({
 		type: Boolean,
 		status: HttpStatus.OK,
+		description: 'Удачно ли прошло удаление',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
-	@ApiNotFoundResponse()
 	@Delete('/:id')
 	remove(@Param('id') id: string) {
 		return this.moviesService.remove({ id, });

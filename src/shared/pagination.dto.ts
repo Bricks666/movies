@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 export class PaginationDto {
 	@ApiProperty({
 		type: Number,
-		title: 'page',
 		description: 'Номер страницы',
 		default: 1,
 		required: false,
@@ -12,7 +11,6 @@ export class PaginationDto {
 
 	@ApiProperty({
 		type: Number,
-		title: 'count',
 		description: 'Количество записей на странице',
 		default: 10,
 		required: false,

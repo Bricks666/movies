@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray } from 'class-validator';
 import type { Express } from 'express';
 
 export class AddPhotosDto {
@@ -8,5 +9,6 @@ export class AddPhotosDto {
 		isArray: true,
 		description: 'Файлы, которые нужно добавить',
 	})
+	@IsArray()
 	declare photos: Express.Multer.File[];
 }
