@@ -26,7 +26,6 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUser, RequiredAuth } from '@/auth';
 import { SecurityUserDto } from '@/users';
 import { PaginationDto } from '@/shared';
-import { MoviesService } from './movies.service';
 import {
 	AddPhotosDto,
 	MovieWithPhotosDto,
@@ -35,12 +34,21 @@ import {
 	UpdateMovieDto,
 	RateMovieDto
 } from './dto';
+import {
+	MoviePhotosService,
+	MovieRatingService,
+	MoviesService
+} from './services';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
 @Controller('movies')
 export class MoviesController {
-	constructor(private readonly moviesService: MoviesService) {}
+	constructor(
+		private readonly moviesService: MoviesService,
+		private readonly moviePhotosService: MoviePhotosService,
+		private readonly movieRatingService: MovieRatingService
+	) {}
 
 	@ApiOperation({
 		summary: 'Вернуть все фильмы',
@@ -143,7 +151,7 @@ export class MoviesController {
 		@UploadedFiles() photos: Express.Multer.File[],
 		@Param('id', ParseIntPipe) id: number
 	) {
-		return this.moviesService.addPhotos({ id, }, photos);
+		return this.moviePhotosService.addPhotos({ id, }, photos);
 	}
 
 	@ApiOperation({
@@ -169,7 +177,7 @@ export class MoviesController {
 		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: RemovePhotosDto
 	) {
-		return this.moviesService.removePhotos({ id, }, dto);
+		return this.moviePhotosService.removePhotos({ id, }, dto);
 	}
 
 	@ApiOperation({})
@@ -186,7 +194,7 @@ export class MoviesController {
 		@CurrentUser() user: SecurityUserDto,
 		@Body() dto: RateMovieDto
 	) {
-		return this.moviesService.rate(
+		return this.movieRatingService.rate(
 			{ id, },
 			{
 				mark: dto.mark,
