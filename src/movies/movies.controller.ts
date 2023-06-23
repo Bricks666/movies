@@ -25,20 +25,20 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUser, RequiredAuth } from '@/auth';
 import { SecurityUserDto } from '@/users';
-import { PaginationDto } from '@/shared';
 import {
 	AddPhotosDto,
-	MovieWithPhotosDto,
 	RemovePhotosDto,
 	CreateMovieDto,
 	UpdateMovieDto,
-	RateMovieDto
+	RateMovieDto,
+	GetAllQueryDto
 } from './dto';
 import {
 	MoviePhotosService,
 	MovieRatingService,
 	MoviesService
 } from './services';
+import { Movie } from './entities';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
@@ -54,12 +54,12 @@ export class MoviesController {
 		summary: 'Вернуть все фильмы',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		isArray: true,
 	})
 	@Get('/')
-	getAll(@Query() pagination: PaginationDto) {
-		return this.moviesService.getAll(pagination);
+	getAll(@Query() query: GetAllQueryDto) {
+		return this.moviesService.getAll(query);
 	}
 
 	@ApiOperation({
@@ -71,7 +71,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		description: 'Найденный фильм',
 	})
 	@ApiNotFoundResponse()
@@ -88,7 +88,7 @@ export class MoviesController {
 		description: 'Данные для создание фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.CREATED,
 	})
 	@ApiConsumes('multipart/form-data')
@@ -115,7 +115,7 @@ export class MoviesController {
 		description: 'Новые данные фильма фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
 		description: 'Обновленный фильм',
 	})
@@ -141,7 +141,7 @@ export class MoviesController {
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
@@ -167,7 +167,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
@@ -190,7 +190,7 @@ export class MoviesController {
 		description: 'Данные для оценки',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
 		description: 'Обнлвленные данные фильма',
 	})

@@ -2,26 +2,34 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DatabaseService } from '@/database';
 import { NormalizedPagination } from '@/shared';
-import { UpdateMovieDto } from '../dto';
+import { MovieSortQueryDto, UpdateMovieDto } from '../dto';
 import { Movie } from '../entities';
 import { CreateMovie, SelectMovie } from '../types';
-import { RawMovie, normalizeMovie } from './lib';
+import { RawMovie, normalizeMovie, resolveMovieSort } from './lib';
 
 @Injectable()
 export class MovieRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
-	async getAll(pagination: NormalizedPagination): Promise<Movie[]> {
+	async getAll(
+		pagination: NormalizedPagination,
+		sort: MovieSortQueryDto
+	): Promise<Movie[]> {
+		const pipeline: Prisma.InputJsonValue[] = [...moviePipeline];
+		const sortPipe = resolveMovieSort(sort);
+		if (sortPipe) {
+			pipeline.push(sortPipe);
+		}
+		pipeline.push(
+			{
+				$skip: pagination.offset,
+			},
+			{
+				$limit: pagination.limit,
+			}
+		);
 		const raw = (await this.databaseService.movie.aggregateRaw({
-			pipeline: [
-				...moviePipeline,
-				{
-					$skip: pagination.offset,
-				},
-				{
-					$limit: pagination.limit,
-				}
-			],
+			pipeline,
 		})) as unknown as RawMovie[];
 		return raw.map(normalizeMovie);
 	}

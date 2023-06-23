@@ -1,5 +1,7 @@
-import { WithObjectId, normalizeMongoModel } from '@/shared';
+import { Prisma } from '@prisma/client';
+import { SORT_ORDER_VALUE, WithObjectId, normalizeMongoModel } from '@/shared';
 import { Movie, MoviePhoto } from '../entities';
+import { MovieSortQueryDto } from '../dto';
 
 export interface RawMovie extends WithObjectId {
 	readonly title: string;
@@ -22,4 +24,20 @@ export const normalizeMovie = (movie: RawMovie): Movie => {
 
 export const normalizePhoto = (photo: RawMoviePhoto): MoviePhoto => {
 	return normalizeMongoModel(photo);
+};
+
+export const resolveMovieSort = (
+	sort: MovieSortQueryDto
+): Prisma.InputJsonValue | undefined => {
+	if (!sort.sortBy) {
+		return;
+	}
+
+	const order = (sort.sortOrder ?? 'asc').toUpperCase();
+
+	return {
+		$sort: {
+			[sort.sortBy]: SORT_ORDER_VALUE[order],
+		},
+	};
 };

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FilesService } from '@/files';
-import { RemovePhotosDto, MovieWithPhotosDto } from '../../dto';
-import { MoviePhoto } from '../../entities';
+import { RemovePhotosDto } from '../../dto';
+import { Movie, MoviePhoto } from '../../entities';
 import { MoviePhotosRepository } from '../../repositories';
 import { MoviesService, SelectMovie } from '../movies';
 import type { Express } from 'express';
@@ -17,7 +17,7 @@ export class MoviePhotosService {
 	async addPhotos(
 		params: SelectMovie,
 		photos: Express.Multer.File[]
-	): Promise<MovieWithPhotosDto> {
+	): Promise<Movie> {
 		// Test that movie exists
 		await this.moviesService.getOne(params);
 		const filesPaths = await Promise.all(
@@ -35,7 +35,7 @@ export class MoviePhotosService {
 	async removePhotos(
 		params: SelectMovie,
 		dto: RemovePhotosDto
-	): Promise<MovieWithPhotosDto> {
+	): Promise<Movie> {
 		// Test that movie exists
 		const movie = await this.moviesService.getOne(params);
 		const photosMap = movie.photos.reduce((acc, photo) => {
