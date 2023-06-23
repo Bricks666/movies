@@ -27,8 +27,6 @@ async function bootstrap() {
 		})
 	);
 
-	app.setGlobalPrefix('api');
-
 	const config = new DocumentBuilder()
 		.setTitle('Документация по API сервера "Movies, cartoons, two series"')
 		.setDescription('Документация по API приложения дел')
@@ -36,7 +34,6 @@ async function bootstrap() {
 		.addCookieAuth(COOKIE_NAME)
 		.addBearerAuth()
 		.addServer('http://localhost:5000')
-		.addTag('api')
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);

@@ -1,12 +1,21 @@
-import {
-	IntersectionType,
-	OmitType,
-	PartialType,
-	PickType
-} from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { IsArray, IsOptional } from 'class-validator';
 import { Movie } from '../entities';
+import type { Express } from 'express';
 
-export class CreateMovieDto extends IntersectionType(
-	OmitType(Movie, ['id', 'rating', 'photos']),
-	PartialType(PickType(Movie, ['photos'] as const))
-) {}
+export class CreateMovieDto extends OmitType(Movie, [
+	'id',
+	'rating',
+	'photos'
+]) {
+	@ApiProperty({
+		type: String,
+		format: 'binary',
+		isArray: true,
+		description: 'Файлы фотографий',
+		required: false,
+	})
+	@IsArray()
+	@IsOptional()
+	declare photos?: Express.Multer.File[];
+}
