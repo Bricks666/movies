@@ -5,7 +5,6 @@ import {
 	Body,
 	Param,
 	Delete,
-	ParseIntPipe,
 	Put,
 	HttpStatus,
 	Query,
@@ -14,6 +13,7 @@ import {
 	Patch
 } from '@nestjs/common';
 import {
+	ApiBadRequestResponse,
 	ApiBody,
 	ApiConflictResponse,
 	ApiConsumes,
@@ -26,20 +26,20 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUser, RequiredAuth } from '@/auth';
 import { SecurityUserDto } from '@/users';
-import { PaginationDto } from '@/shared';
 import {
 	AddPhotosDto,
-	MovieWithPhotosDto,
 	RemovePhotosDto,
 	CreateMovieDto,
 	UpdateMovieDto,
-	RateMovieDto
+	RateMovieDto,
+	GetAllQueryDto
 } from './dto';
 import {
 	MoviePhotosService,
 	MovieRatingService,
 	MoviesService
 } from './services';
+import { Movie } from './entities';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
@@ -55,12 +55,15 @@ export class MoviesController {
 		summary: 'Вернуть все фильмы',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		isArray: true,
+		status: HttpStatus.OK,
+		description: 'Фильмы',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@Get('/')
-	getAll(@Query() pagination: PaginationDto) {
-		return this.moviesService.getAll(pagination);
+	getAll(@Query() query: GetAllQueryDto) {
+		return this.moviesService.getAll(query);
 	}
 
 	@ApiOperation({
@@ -68,35 +71,37 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
+		status: HttpStatus.OK,
 		description: 'Найденный фильм',
 	})
-	@ApiNotFoundResponse()
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@Get('/:id')
-	getOne(@Param('id', ParseIntPipe) id: number) {
+	getOne(@Param('id') id: string) {
 		return this.moviesService.getOne({ id, });
 	}
 
 	@ApiOperation({
 		summary: 'Добавить фильм',
 	})
+	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		type: CreateMovieDto,
 		description: 'Данные для создание фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.CREATED,
+		description: 'Созданный фильм',
 	})
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@RequiredAuth()
+	@UseInterceptors(FilesInterceptor('photos'))
 	@Post('/')
 	create(
 		@Body() dto: CreateMovieDto,
@@ -110,7 +115,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiBody({
@@ -118,14 +123,15 @@ export class MoviesController {
 		description: 'Новые данные фильма фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
 		description: 'Обновленный фильм',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
-	@ApiNotFoundResponse()
 	@Put('/:id')
-	update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
+	update(@Param('id') id: string, @Body() dto: UpdateMovieDto) {
 		return this.moviesService.update({ id, }, dto);
 	}
 
@@ -134,25 +140,27 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
+	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		type: AddPhotosDto,
 		description: 'Новые данные фильма фильма',
 	})
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
+	@UseInterceptors(FilesInterceptor('photos'))
 	@Patch('/:id/photos/add')
 	addPhotos(
 		@UploadedFiles() photos: Express.Multer.File[],
-		@Param('id', ParseIntPipe) id: number
+		@Param('id') id: string
 	) {
 		return this.moviePhotosService.addPhotos({ id, }, photos);
 	}
@@ -166,20 +174,19 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
 	@RequiredAuth()
 	@Patch('/:id/photos/remove')
-	removePhotos(
-		@Param('id', ParseIntPipe) id: number,
-		@Body() dto: RemovePhotosDto
-	) {
+	removePhotos(@Param('id') id: string, @Body() dto: RemovePhotosDto) {
 		return this.moviePhotosService.removePhotos({ id, }, dto);
 	}
 
@@ -188,7 +195,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiBody({
@@ -196,10 +203,11 @@ export class MoviesController {
 		description: 'Данные для оценки',
 	})
 	@ApiResponse({
-		type: MovieWithPhotosDto,
+		type: Movie,
 		status: HttpStatus.OK,
-		description: 'Обнлвленные данные фильма',
+		description: 'Обновленные данные фильма',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@ApiConflictResponse({
 		description: 'Пользователь уже оставил оценку для этого фильма',
@@ -207,7 +215,7 @@ export class MoviesController {
 	@RequiredAuth()
 	@Patch('/:id/rate')
 	async rateMovie(
-		@Param('id', ParseIntPipe) id: number,
+		@Param('id') id: string,
 		@CurrentUser() user: SecurityUserDto,
 		@Body() dto: RateMovieDto
 	) {
@@ -225,16 +233,19 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
+		description: 'Id фильма',
 	})
 	@ApiResponse({
 		type: Boolean,
 		status: HttpStatus.OK,
+		description: 'Удачно ли прошло удаление',
 	})
+	@ApiBadRequestResponse({ description: 'Неправильные параметры запроса', })
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
 	@RequiredAuth()
-	@ApiNotFoundResponse()
 	@Delete('/:id')
-	remove(@Param('id', ParseIntPipe) id: number) {
+	remove(@Param('id') id: string) {
 		return this.moviesService.remove({ id, });
 	}
 }

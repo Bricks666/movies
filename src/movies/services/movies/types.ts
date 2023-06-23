@@ -1,7 +1,7 @@
 import { CreateMovieDto } from '../../dto';
 
 export interface SelectMovie {
-	readonly id: number;
+	readonly id: string;
 }
 
 export interface CreateMovie extends Omit<CreateMovieDto, 'photos'> {

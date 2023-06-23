@@ -1,14 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Movie as MovieModel } from '@prisma/client';
-import { IsNumber, IsString, Max, Min, MinLength } from 'class-validator';
+import {
+	IsArray,
+	IsMongoId,
+	IsNumber,
+	IsString,
+	Max,
+	Min,
+	MinLength
+} from 'class-validator';
+import { MoviePhoto } from './movie-photo.entity';
 
 export class Movie implements MovieModel {
 	@ApiProperty({
 		type: Number,
 		description: 'ID фильма',
 	})
-	@IsNumber()
-	declare id: number;
+	@IsMongoId()
+	declare id: string;
 
 	@ApiProperty({
 		type: String,
@@ -34,4 +43,12 @@ export class Movie implements MovieModel {
 	@Min(1)
 	@Max(10)
 	declare rating: number | null;
+
+	@ApiProperty({
+		type: MoviePhoto,
+		isArray: true,
+		description: 'Фотографии фильма',
+	})
+	@IsArray()
+	declare photos: MoviePhoto[];
 }

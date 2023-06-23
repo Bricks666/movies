@@ -3,9 +3,10 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common';
-import { UserRepository } from './repository';
-import { CreateUserDto, SecurityUserDto, UpdateUserDto, UserDto } from './dto';
+import { UserRepository } from './repositories';
+import { CreateUserDto, SecurityUserDto, UpdateUserDto } from './dto';
 import { SelectUser } from './types';
+import { User } from './entities';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
 		return this.securingUser(user);
 	}
 
-	async getInsecure(params: SelectUser): Promise<UserDto> {
+	async getInsecure(params: SelectUser): Promise<User> {
 		const user = await this.userRepository.getOne(params);
 
 		if (!user) {
@@ -64,7 +65,7 @@ export class UsersService {
 		return removed;
 	}
 
-	securingUser(user: UserDto): SecurityUserDto {
+	securingUser(user: User): SecurityUserDto {
 		return {
 			id: user.id,
 			login: user.login,

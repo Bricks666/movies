@@ -1,11 +1,11 @@
 import { CreateMovieDto, RateMovieDto, RemovePhotosDto } from './dto';
 
 export interface SelectMovie {
-	readonly id: number;
+	readonly id: string;
 }
 
 export interface SelectMoviePhoto {
-	readonly movieId: number;
+	readonly movieId: string;
 }
 
 export interface CreateMovie extends Omit<CreateMovieDto, 'photos'> {
@@ -13,19 +13,19 @@ export interface CreateMovie extends Omit<CreateMovieDto, 'photos'> {
 }
 
 export interface AddPhotos {
-	readonly movieId: number;
+	readonly movieId: string;
 	readonly photos: string[];
 }
 
 export interface RemovePhotos extends RemovePhotosDto {
-	readonly movieId: number;
+	readonly movieId: string;
 }
 
 export interface RateMovie extends RateMovieDto {
-	readonly userId: number;
+	readonly userId: string;
 }
 
 export interface RemovePhoto {
-	readonly movieId: number;
-	readonly photoId: number;
+	readonly movieId: string;
+	readonly photoId: string;
 }

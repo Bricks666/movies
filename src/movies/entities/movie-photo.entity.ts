@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MoviePhotos } from '@prisma/client';
-import { IsNumber, IsString, MinLength } from 'class-validator';
+import { IsMongoId, IsString, MinLength } from 'class-validator';
 
 export class MoviePhoto implements Omit<MoviePhotos, 'movieId'> {
 	@ApiProperty({
 		type: Number,
 		description: 'ID привязки фото к фильму',
 	})
-	@IsNumber()
-	declare id: number;
+	@IsMongoId()
+	declare id: string;
 
 	@ApiProperty({
 		type: String,

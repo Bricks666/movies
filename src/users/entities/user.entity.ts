@@ -1,25 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { User as UserModel } from '@prisma/client';
+import { IsMongoId, IsString, Length } from 'class-validator';
 
-export class UserDto implements User {
+export class User implements UserModel {
 	@ApiProperty({
 		type: Number,
-		title: 'ID',
 		description: 'Идентификатор пользователя',
 	})
-	declare id: number;
+	@IsMongoId()
+	declare id: string;
 
 	@ApiProperty({
 		type: String,
-		title: 'Логин',
 		description: 'Логин пользователя',
 	})
+	@IsString()
+	@Length(2)
 	declare login: string;
 
 	@ApiProperty({
 		type: String,
-		title: 'Пароль',
-		description: 'пароль пользователя',
+		description: 'Пароль пользователя',
 	})
+	@IsString()
+	@Length(2)
 	declare password: string;
 }

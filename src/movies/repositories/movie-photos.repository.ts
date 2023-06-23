@@ -22,7 +22,6 @@ export class MoviePhotosRepository {
 				path: photo,
 				movieId: dto.movieId,
 			})),
-			skipDuplicates: true,
 		});
 		return !!count;
 	}

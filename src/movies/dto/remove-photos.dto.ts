@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsMongoId } from 'class-validator';
 
 export class RemovePhotosDto {
 	@ApiProperty({
-		type: Number,
+		type: String,
 		isArray: true,
 		description: 'Id фотографий для удаления',
 	})
-	readonly photosIds: number[];
+	@IsMongoId({ each: true, })
+	readonly photosIds: string[];
 }
