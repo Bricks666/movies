@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '@prisma/client';
+import { IsMongoId } from 'class-validator';
 
 export class UserDto implements User {
 	@ApiProperty({
@@ -7,7 +8,8 @@ export class UserDto implements User {
 		title: 'ID',
 		description: 'Идентификатор пользователя',
 	})
-	declare id: number;
+	@IsMongoId()
+	declare id: string;
 
 	@ApiProperty({
 		type: String,

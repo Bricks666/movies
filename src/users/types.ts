@@ -1,5 +1,5 @@
 export interface SelectUserById {
-	readonly id: number;
+	readonly id: string;
 }
 
 export interface SelectUserByLogin {

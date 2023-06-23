@@ -5,7 +5,6 @@ import {
 	Body,
 	Param,
 	Delete,
-	ParseIntPipe,
 	Put,
 	HttpStatus,
 	Query,
@@ -68,7 +67,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiResponse({
@@ -77,7 +76,7 @@ export class MoviesController {
 	})
 	@ApiNotFoundResponse()
 	@Get('/:id')
-	getOne(@Param('id', ParseIntPipe) id: number) {
+	getOne(@Param('id') id: string) {
 		return this.moviesService.getOne({ id, });
 	}
 
@@ -94,8 +93,6 @@ export class MoviesController {
 	})
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
-	@ApiConsumes('multipart/form-data')
-	@UseInterceptors(FilesInterceptor('photos'))
 	@RequiredAuth()
 	@Post('/')
 	create(
@@ -110,7 +107,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiBody({
@@ -125,7 +122,7 @@ export class MoviesController {
 	@RequiredAuth()
 	@ApiNotFoundResponse()
 	@Put('/:id')
-	update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto) {
+	update(@Param('id') id: string, @Body() dto: UpdateMovieDto) {
 		return this.moviesService.update({ id, }, dto);
 	}
 
@@ -134,7 +131,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiBody({
@@ -152,7 +149,7 @@ export class MoviesController {
 	@Patch('/:id/photos/add')
 	addPhotos(
 		@UploadedFiles() photos: Express.Multer.File[],
-		@Param('id', ParseIntPipe) id: number
+		@Param('id') id: string
 	) {
 		return this.moviePhotosService.addPhotos({ id, }, photos);
 	}
@@ -166,7 +163,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiResponse({
@@ -176,10 +173,7 @@ export class MoviesController {
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
 	@RequiredAuth()
 	@Patch('/:id/photos/remove')
-	removePhotos(
-		@Param('id', ParseIntPipe) id: number,
-		@Body() dto: RemovePhotosDto
-	) {
+	removePhotos(@Param('id') id: string, @Body() dto: RemovePhotosDto) {
 		return this.moviePhotosService.removePhotos({ id, }, dto);
 	}
 
@@ -188,7 +182,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 		description: 'Id фильма',
 	})
 	@ApiBody({
@@ -207,7 +201,7 @@ export class MoviesController {
 	@RequiredAuth()
 	@Patch('/:id/rate')
 	async rateMovie(
-		@Param('id', ParseIntPipe) id: number,
+		@Param('id') id: string,
 		@CurrentUser() user: SecurityUserDto,
 		@Body() dto: RateMovieDto
 	) {
@@ -225,7 +219,7 @@ export class MoviesController {
 	})
 	@ApiParam({
 		name: 'id',
-		type: Number,
+		type: String,
 	})
 	@ApiResponse({
 		type: Boolean,
@@ -234,7 +228,7 @@ export class MoviesController {
 	@RequiredAuth()
 	@ApiNotFoundResponse()
 	@Delete('/:id')
-	remove(@Param('id', ParseIntPipe) id: number) {
+	remove(@Param('id') id: string) {
 		return this.moviesService.remove({ id, });
 	}
 }

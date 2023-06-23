@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { DatabaseService } from '@/database';
 import { NormalizedPagination } from '@/shared';
 import { UpdateMovieDto } from '../dto';
@@ -11,35 +12,51 @@ export class MovieRepository {
 	constructor(private readonly databaseService: DatabaseService) {}
 
 	async getAll(pagination: NormalizedPagination): Promise<Movie[]> {
-		const raw = await this.databaseService.$queryRaw<
-			RawMovie[]
-		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
-			LEFT JOIN "Rating" ON "Rating"."movieId" = "Movie"."id"\
-			GROUP BY "id"\
-			OFFSET ${pagination.offset} LIMIT ${pagination.limit};`;
-
+		const raw = (await this.databaseService.movie.aggregateRaw({
+			pipeline: [
+				...moviePipeline,
+				{
+					$skip: pagination.offset,
+				},
+				{
+					$limit: pagination.limit,
+				}
+			],
+		})) as unknown as RawMovie[];
 		return raw.map(normalizeMovie);
 	}
 
 	async getOne(params: SelectMovie): Promise<Movie | null> {
-		const raw = await this.databaseService.$queryRaw<
-			RawMovie | undefined
-		>`SELECT id, title, description, AVG("mark") as rating FROM "Movie"\
-		LEFT JOIN "Rating" ON "Rating"."movieId" = "Movie"."id"\
-		WHERE "id" = ${params.id}\
-		GROUP BY "id";`.then((result) => result[0]);
+		const raw = await this.databaseService.movie
+			.aggregateRaw({
+				pipeline: [
+					{
+						// OMG It's work. Only this way
+						// I found answer here https://github.com/prisma/prisma/issues/15013#issuecomment-1381397966
+						$match: {
+							_id: { $oid: params.id, },
+						},
+					},
+					...moviePipeline
+				],
+			})
+			.then((value) => (value[0] as unknown as RawMovie | undefined) ?? null);
 		return raw ? normalizeMovie(raw) : null;
 	}
 
 	async create(params: CreateMovie): Promise<Movie> {
 		const { photos, ...rest } = params;
+		let createMany;
+		if (photos.length) {
+			createMany = {
+				data: photos.map((photo) => ({ path: photo, })),
+			};
+		}
 		const movie = await this.databaseService.movie.create({
 			data: {
 				...rest,
 				photos: {
-					createMany: {
-						data: photos.map((photo) => ({ path: photo, })),
-					},
+					createMany,
 				},
 			},
 			select: {
@@ -47,6 +64,7 @@ export class MovieRepository {
 			},
 		});
 
+		// Need for correct shape return
 		return this.getOne({ id: movie.id, });
 	}
 
@@ -63,6 +81,8 @@ export class MovieRepository {
 				},
 			})
 			.catch(() => null);
+
+		// Need for correct shape return
 		return this.getOne({ id: movie.id, });
 	}
 
@@ -77,3 +97,60 @@ export class MovieRepository {
 			.catch(() => false);
 	}
 }
+
+const moviePipeline = [
+	{
+		$lookup: {
+			from: Prisma.ModelName.Rating,
+			localField: '_id',
+			foreignField: Prisma.RatingScalarFieldEnum.movieId,
+			as: 'ratings',
+			pipeline: [
+				{
+					$group: {
+						_id: '$movieId',
+						rating: { $avg: '$mark', },
+					},
+				},
+				{
+					$project: {
+						_id: false,
+						rating: true,
+					},
+				}
+			],
+		},
+	},
+	{
+		$lookup: {
+			from: Prisma.ModelName.MoviePhotos,
+			localField: '_id',
+			foreignField: Prisma.MoviePhotosScalarFieldEnum.movieId,
+			as: 'photos',
+			pipeline: [
+				{
+					$project: {
+						_id: true,
+						path: true,
+					},
+				}
+			],
+		},
+	},
+	{
+		$replaceRoot: {
+			newRoot: {
+				$mergeObjects: [{ $arrayElemAt: ['$ratings', 0], }, '$$ROOT'],
+			},
+		},
+	},
+	{
+		$project: {
+			_id: true,
+			title: true,
+			description: true,
+			rating: true,
+			photos: true,
+		},
+	}
+];

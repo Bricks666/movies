@@ -1,4 +1,4 @@
 import { PickType } from '@nestjs/swagger';
-import { Rating } from '../entities';
+import { CreateRatingDto } from './create-rating.dto';
 
-export class RateMovieDto extends PickType(Rating, ['mark']) {}
+export class RateMovieDto extends PickType(CreateRatingDto, ['mark']) {}
