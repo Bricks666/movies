@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
 	ApiBody,
+	ApiConflictResponse,
 	ApiConsumes,
 	ApiNotFoundResponse,
 	ApiOperation,
@@ -23,24 +24,38 @@ import {
 	ApiTags
 } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CurrentUser, RequiredAuth } from '@/auth';
+import { SecurityUserDto } from '@/users';
 import { PaginationDto } from '@/shared';
-import { RequiredAuth } from '@/auth';
-import { MoviesService } from './movies.service';
-import { CreateMovieDto } from './dto/create-movie.dto';
-import { UpdateMovieDto } from './dto/update-movie.dto';
-import { AddPhotosDto, MovieDto, RemovePhotosDto } from './dto';
+import {
+	AddPhotosDto,
+	MovieWithPhotosDto,
+	RemovePhotosDto,
+	CreateMovieDto,
+	UpdateMovieDto,
+	RateMovieDto
+} from './dto';
+import {
+	MoviePhotosService,
+	MovieRatingService,
+	MoviesService
+} from './services';
 import type { Express } from 'express';
 
 @ApiTags('Фильмы')
 @Controller('movies')
 export class MoviesController {
-	constructor(private readonly moviesService: MoviesService) {}
+	constructor(
+		private readonly moviesService: MoviesService,
+		private readonly moviePhotosService: MoviePhotosService,
+		private readonly movieRatingService: MovieRatingService
+	) {}
 
 	@ApiOperation({
 		summary: 'Вернуть все фильмы',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		isArray: true,
 	})
 	@Get('/')
@@ -57,7 +72,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		description: 'Найденный фильм',
 	})
 	@ApiNotFoundResponse()
@@ -74,9 +89,11 @@ export class MoviesController {
 		description: 'Данные для создание фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.CREATED,
 	})
+	@ApiConsumes('multipart/form-data')
+	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
 	@RequiredAuth()
@@ -101,7 +118,7 @@ export class MoviesController {
 		description: 'Новые данные фильма фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 		description: 'Обновленный фильм',
 	})
@@ -127,7 +144,7 @@ export class MoviesController {
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм не найден', })
@@ -137,7 +154,7 @@ export class MoviesController {
 		@UploadedFiles() photos: Express.Multer.File[],
 		@Param('id', ParseIntPipe) id: number
 	) {
-		return this.moviesService.addPhotos({ id, }, photos);
+		return this.moviePhotosService.addPhotos({ id, }, photos);
 	}
 
 	@ApiOperation({
@@ -153,7 +170,7 @@ export class MoviesController {
 		description: 'Id фильма',
 	})
 	@ApiResponse({
-		type: MovieDto,
+		type: MovieWithPhotosDto,
 		status: HttpStatus.OK,
 	})
 	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
@@ -163,7 +180,44 @@ export class MoviesController {
 		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: RemovePhotosDto
 	) {
-		return this.moviesService.removePhotos({ id, }, dto);
+		return this.moviePhotosService.removePhotos({ id, }, dto);
+	}
+
+	@ApiOperation({
+		summary: 'Выставление оценки',
+	})
+	@ApiParam({
+		name: 'id',
+		type: Number,
+		description: 'Id фильма',
+	})
+	@ApiBody({
+		type: RateMovieDto,
+		description: 'Данные для оценки',
+	})
+	@ApiResponse({
+		type: MovieWithPhotosDto,
+		status: HttpStatus.OK,
+		description: 'Обнлвленные данные фильма',
+	})
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
+	@ApiConflictResponse({
+		description: 'Пользователь уже оставил оценку для этого фильма',
+	})
+	@RequiredAuth()
+	@Patch('/:id/rate')
+	async rateMovie(
+		@Param('id', ParseIntPipe) id: number,
+		@CurrentUser() user: SecurityUserDto,
+		@Body() dto: RateMovieDto
+	) {
+		return this.movieRatingService.rate(
+			{ id, },
+			{
+				mark: dto.mark,
+				userId: user.id,
+			}
+		);
 	}
 
 	@ApiOperation({

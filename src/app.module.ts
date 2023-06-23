@@ -1,13 +1,13 @@
 import { resolve } from 'node:path';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { DatabaseModule } from './database';
-import { AuthModule } from './auth';
-import { UsersModule } from './users';
-import { MoviesModule } from './movies';
-import { FilesModule } from './files';
-import { STATIC_DIR, STATIC_PATH } from './shared';
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule } from '@/database';
+import { AuthModule } from '@/auth';
+import { UsersModule } from '@/users';
+import { MoviesModule } from '@/movies';
+import { FilesModule } from '@/files';
+import { STATIC_DIR, STATIC_PATH } from '@/shared';
 
 const STATIC_DIR_PATH = resolve(__dirname, STATIC_DIR);
 
