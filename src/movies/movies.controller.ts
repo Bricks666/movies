@@ -54,9 +54,11 @@ export class MoviesController {
 	@ApiParam({
 		name: 'id',
 		type: Number,
+		description: 'Id фильма',
 	})
 	@ApiResponse({
 		type: MovieDto,
+		description: 'Найденный фильм',
 	})
 	@ApiNotFoundResponse()
 	@Get('/:id')
@@ -92,6 +94,7 @@ export class MoviesController {
 	@ApiParam({
 		name: 'id',
 		type: Number,
+		description: 'Id фильма',
 	})
 	@ApiBody({
 		type: UpdateMovieDto,
@@ -100,6 +103,7 @@ export class MoviesController {
 	@ApiResponse({
 		type: MovieDto,
 		status: HttpStatus.OK,
+		description: 'Обновленный фильм',
 	})
 	@RequiredAuth()
 	@ApiNotFoundResponse()
@@ -108,12 +112,26 @@ export class MoviesController {
 		return this.moviesService.update({ id, }, dto);
 	}
 
+	@ApiOperation({
+		summary: 'Добавление фото к фильму',
+	})
+	@ApiParam({
+		name: 'id',
+		type: Number,
+		description: 'Id фильма',
+	})
 	@ApiBody({
 		type: AddPhotosDto,
 		description: 'Новые данные фильма фильма',
 	})
 	@ApiConsumes('multipart/form-data')
 	@UseInterceptors(FilesInterceptor('photos'))
+	@ApiResponse({
+		type: MovieDto,
+		status: HttpStatus.OK,
+	})
+	@ApiNotFoundResponse({ description: 'Фильм не найден', })
+	@RequiredAuth()
 	@Patch('/:id/photos/add')
 	addPhotos(
 		@UploadedFiles() photos: Express.Multer.File[],
@@ -122,10 +140,24 @@ export class MoviesController {
 		return this.moviesService.addPhotos({ id, }, photos);
 	}
 
+	@ApiOperation({
+		summary: 'Удаление фотографий',
+	})
 	@ApiBody({
 		type: RemovePhotosDto,
-		description: '',
+		description: 'Данные для удаления',
 	})
+	@ApiParam({
+		name: 'id',
+		type: Number,
+		description: 'Id фильма',
+	})
+	@ApiResponse({
+		type: MovieDto,
+		status: HttpStatus.OK,
+	})
+	@ApiNotFoundResponse({ description: 'Фильм или фото не найдены', })
+	@RequiredAuth()
 	@Patch('/:id/photos/remove')
 	removePhotos(
 		@Param('id', ParseIntPipe) id: number,

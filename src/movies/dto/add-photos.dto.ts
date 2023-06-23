@@ -6,6 +6,7 @@ export class AddPhotosDto {
 		type: String,
 		format: 'binary',
 		isArray: true,
+		description: 'Файлы, которые нужно добавить',
 	})
 	declare photos: Express.Multer.File[];
 }

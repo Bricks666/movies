@@ -8,6 +8,7 @@ export class CreateMovieDto extends OmitType(MovieDto, ['id', 'photos']) {
 		format: 'binary',
 		isArray: true,
 		required: false,
+		description: 'Фотографии для фильма',
 	})
 	readonly photos?: Express.Multer.File[];
 }
